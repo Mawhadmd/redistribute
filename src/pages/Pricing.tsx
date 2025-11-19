@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import PricingCards from "../components/PricingCards.tsx";
+import PricingCards from "../components/pricingCards.tsx";
 
 //TODO: Add animation to the toggle switch
 export default function Pricing() {
@@ -78,7 +78,7 @@ export default function Pricing() {
           Yearly <span className="text-accent">(30 days for free)</span>
         </div>
         <div
-          className="h-8 drop-shadow-sm aspect-[16/9] rounded-xl bg-accent/50 relative cursor-pointer"
+          className="h-8 drop-shadow-sm aspect-[16/9] rounded-full bg-accent/50 relative cursor-pointer"
           onClick={() => setMonthly(!ismonthly)}
         >
           <div

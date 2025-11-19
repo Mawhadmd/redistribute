@@ -1,10 +1,21 @@
 import React from "react";
+import SmallBusiness from "./SmallBusiness.tsx";
+import ContentCreators from "./ContentCreators.tsx";
+import Pricing from "./Pricing.tsx";
+
+import TrustedPartners from "../components/TrustedPartners.tsx";
+import About from "./About.tsx";
+import Contact from "./Contact.tsx";
 
 export default function Home() {
   return (
     <div>
-      <h1 className="text-2xl font-bold">Home</h1>
-      <p className="mt-2">Welcome to the home page.</p>
+      <ContentCreators />
+      <SmallBusiness />
+      <TrustedPartners />
+      <Pricing />
+      <About />
+      <Contact />
     </div>
   );
 }
