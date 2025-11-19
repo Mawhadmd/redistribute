@@ -1,6 +1,9 @@
 import { RefreshCcw } from "lucide-react";
 import { use } from "react";
 import { Link, useLocation } from "react-router";
+import BorderedButton from "./buttons/borderedbutton.tsx";
+import FilledButton from "./buttons/filledbutton.tsx";
+
 
 export default function Navbar() {
   const currentpage = useLocation().pathname;
@@ -8,10 +11,10 @@ export default function Navbar() {
           { to: "/Pricing", label: "Pricing" },
           { to: "/small-business", label: "Small Business" },
           { to: "/E-commerce", label: "E-commerce" },
-          { to: "/Agency", label: "Agency" },
+          { to: "/About", label: "About" },
         ]
   return (
-    <div className="flex justify-between items-center w-full p-14">
+    <div className="flex justify-between items-center w-full p-8 mb-4">
       <div className="flex gap-1 font-bold text-2xl items-center justify-center">
         <RefreshCcw className="text-accent size-9" />
         <p>
@@ -27,12 +30,8 @@ export default function Navbar() {
         ))}
       </nav>
       <div className="gap-2 flex">
-        <button className="w-44 h-10 border border-accent rounded-lg text-xl text-accent font-bold">
-          Login
-        </button>
-        <button className="w-44 h-10 border bg-accent rounded-lg text-xl text-primary font-bold">
-          Start Free Trial
-        </button>
+        <BorderedButton text="Log in" />
+        <FilledButton text="Start Free Trial" />
       </div>
     </div>
   );
