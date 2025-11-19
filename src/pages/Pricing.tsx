@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from "react";
-import PricingCards from "../components/pricingCards.tsx";
+import PricingCards from "../components/PricingCards.tsx";
 
-//TODO: Add animation to the toggle switch
+
+
 export default function Pricing() {
     const button = useRef(null);
     const basePrices = [0.99, 2.99, 9.99];
