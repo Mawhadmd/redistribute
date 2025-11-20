@@ -1,3 +1,4 @@
+import { Github } from "lucide-react";
 import React from "react";
 import { Link } from "react-router";
 
@@ -12,6 +13,9 @@ export default function About() {
         better understanding check out our <Link className="text-accent underline" to="/terms-and-conditions">terms and conditions</Link> . <br /> <br /> This is a demo
         project and we do not actually moderate or access any accounts.
       </p>
+      <br></br>
+      Visit The source code here:
+      <a href="https://github.com/Mawhadmd/redistribute" target="_blank"><Github className="bg-secondary text-accent p-2 size-12 rounded-full m-1 hover:text-white transition-all cursor-pointer"/></a>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { Mail, MessageCircleIcon, MessageSquareMore, MessageSquareMoreIcon } fro
 export default function Contact() {
   return (
     <div >
-      <h1 className="text-2xl font-bold text-center mb-4">Contact</h1>
+      <h1 className="text-2xl  font-bold text-center mb-4">Contact</h1>
      <div className="flex justify-center items-center gap-2 flex-wrap">
       <ContactCards icon={<Mail className="size-10 text-accent"/>} title="Email" availablity="Available 24/7 - Response in 24 hours" />
 

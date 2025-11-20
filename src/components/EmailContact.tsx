@@ -15,7 +15,9 @@ export default function EmailContact() {
     }, [submitted]);
     const submit = (e: React.FormEvent<HTMLFormElement>)=>{
         e.preventDefault();
-
+        if (!name || !email || !message) {
+            return;
+        }
         console.log("Form submitted:", { name, email, message });
         setMessage("");
         setName("");
@@ -23,6 +25,8 @@ export default function EmailContact() {
         setSubmitted(true);
     }
   return (
+    <>
+    <h1 className="text-4xl font-bold text-center mb-4">Send an Email</h1>
     <form onSubmit={submit} className="sm:w-[30%]  mx-auto flex flex-col justify-center flex-1  text-secondary">
       <input
         type="text"
@@ -46,6 +50,6 @@ export default function EmailContact() {
         Send
       </button>
         {submitted && <p className="text-green-500 mt-2">Message sent successfully!</p>}
-    </form>
+    </form></>
   );
 }
