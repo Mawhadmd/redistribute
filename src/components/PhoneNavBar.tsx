@@ -15,7 +15,7 @@ export default function PhoneNavBar({isopen, SetphoneNav}: {isopen: boolean, Set
           { to: "/content-creators", label: "Content Creators" },
         ]
   return (
-    <div style={{transform: isopen ? 'translateX(0)' : 'translateX(100%)'}} className="transition-all flex flex-col justify-around items-center lg:hidden bg-white w-[50%] p-8 right-0  h-screen fixed top-0 border-l border-accent/20  shadow-lg z-50">
+    <div id='phone-nav-bar' style={{transform: isopen ? 'translateX(0)' : 'translateX(100%)'}} className="transition-all flex flex-col justify-around items-center lg:hidden bg-white w-[50%] p-8 right-0  h-screen fixed top-0 border-l border-accent/20  shadow-lg z-50">
       <div className='top-0 bg-secondary text-accent p-2  left-0 absolute cursor-pointer rounded-br-2xl' onClick={() => SetphoneNav(false)}><ArrowBigLeft/></div>
       <div className=" flex gap-1 font-bold text-xl items-center justify-center">
         <RefreshCcw className="text-accent size-9" />
