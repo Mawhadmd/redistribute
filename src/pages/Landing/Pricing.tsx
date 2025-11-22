@@ -1,12 +1,10 @@
 import React, { useEffect, useRef } from "react";
-import PricingCards from "../components/PricingCards.tsx";
-
-
+import PricingCards from "../../components/PricingCards.tsx";
 
 export default function Pricing() {
-    const button = useRef(null);
-    const basePrices = [0.99, 2.99, 9.99];
-    const [ismonthly, setMonthly] = React.useState(true);
+  const button = useRef(null);
+  const basePrices = [0.99, 2.99, 9.99];
+  const [ismonthly, setMonthly] = React.useState(true);
   const [plans, setPlans] = React.useState([
     {
       title: "Starter",
@@ -49,21 +47,22 @@ export default function Pricing() {
     },
   ]);
   useEffect(() => {
-    if(ismonthly){
-       setPlans(plans.map((plan, idx) => ({
-            ...plan,
-            pricePerDay: basePrices[idx]
-        })));
-    }else{
-           setPlans(plans.map((plan, idx) => ({
-            ...plan,
-            pricePerDay: Number((basePrices[idx] * 335/365).toFixed(2))
-        })));
-      
+    if (ismonthly) {
+      setPlans(
+        plans.map((plan, idx) => ({
+          ...plan,
+          pricePerDay: basePrices[idx],
+        }))
+      );
+    } else {
+      setPlans(
+        plans.map((plan, idx) => ({
+          ...plan,
+          pricePerDay: Number(((basePrices[idx] * 335) / 365).toFixed(2)),
+        }))
+      );
     }
-    return () => {
-        
-    };
+    return () => {};
   }, [ismonthly]);
 
   return (
@@ -94,7 +93,7 @@ export default function Pricing() {
       </div>
       <div className="flex justify-center items-center sm:p-10 !pt-4 flex-wrap ">
         {plans.map((plan, idx) => (
-          <PricingCards monthly={ismonthly} plan={plan} idx={idx}  key={idx} />
+          <PricingCards monthly={ismonthly} plan={plan} idx={idx} key={idx} />
         ))}
       </div>
     </div>

@@ -53,8 +53,8 @@ export default function Navbar() {
   ];
   return (
     <div className="  flex justify-between items-center w-full p-8 mb-4 h-18 gap-2">
-      <div className="flex gap-1 font-bold text-2xl items-center justify-center">
-        <RefreshCcw className="text-accent size-9" />
+      <div className="flex gap-1 font-bold text-lg sm:text-2xl  items-center justify-center">
+        <RefreshCcw className="text-accent size-6 sm:size-9" />
         <h2>
           {" "}
           <Link to="/">Redistribute.io</Link>
@@ -75,14 +75,17 @@ export default function Navbar() {
         ))}
       </nav>
       <div className="gap-2 lg:flex  hidden">
-        <BorderedButton style="xl:block hidden" text="Log in" />
-        <FilledButton text="Start Free Trial" />
+        <BorderedButton style="xl:block hidden" text="Log in" to="/login" />
+        <FilledButton text="Start Free Trial" to='/register' />
       </div>
+      <div className="flex gap-4">
+        <Link to={'/register'} className="sm:hidden text-accent">Start free trial</Link>
       <div
         onClick={(e) => {  e.stopPropagation(); SetphoneNav(true)}}
         className="cursor-pointer h-full lg:hidden"
       >
         <List></List>
+      </div>
       </div>
       <PhoneNavBar isopen={phoneNav} SetphoneNav={SetphoneNav}></PhoneNavBar>
     </div>

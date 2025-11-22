@@ -67,11 +67,12 @@ export default function PricingCards({
         <Link to="/contact" className="w-full">
           <BorderedButton
             text={plan.buttonText}
+            to="/login"
             style={"p-2 text-sm !w-full"}
           />
         </Link>
       ) : (
-        <BorderedButton text={plan.buttonText} style={"p-2 text-sm !w-full"} />
+        <BorderedButton text={plan.buttonText} style={"p-2 text-sm !w-full"} to="/login" />
       )}
     </div>
   );

@@ -32,8 +32,8 @@ export default function PhoneNavBar({isopen, SetphoneNav}: {isopen: boolean, Set
         ))}
       </nav>
       <div className="gap-2 flex flex-col">
-        <BorderedButton text="Log in" />
-        <FilledButton text="Start Free Trial" />
+        <BorderedButton text="Log in" to='/login' />
+        <FilledButton text="Start Free Trial" to='/register' />
       </div>
     </div>
   );

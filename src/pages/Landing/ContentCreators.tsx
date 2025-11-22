@@ -1,5 +1,5 @@
 import React from "react";
-import FilledButton from "../components/buttons/filledbutton.tsx";
+import FilledButton from "../../components/buttons/filledbutton.tsx";
 
 export default function ContentCreators() {
   return (
@@ -19,18 +19,16 @@ export default function ContentCreators() {
         </div>
 
         <div>
-          <FilledButton text="Start your 14-day free trial >" style=" font-semibold  w-fit !px-10 !py-4 h-fit"/>
+          <FilledButton
+          to='/register'
+            text="Start your 14-day free trial >"
+            style=" font-semibold  w-fit !px-10 !py-4 h-fit"
+          />
           <p className="text-secondary/80 ml-2 "> No credit card required</p>
         </div>
       </div>
       <div className="sm:w-1/2">
-        <video
-          src={'/landing-03-tiktok.mp4'}
-          autoPlay
-          loop
-          muted
-
-        ></video>
+        <video src={"/landing-03-tiktok.mp4"} autoPlay loop muted></video>
       </div>
     </div>
   );
