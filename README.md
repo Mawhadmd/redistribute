@@ -1,6 +1,7 @@
 # Redistribute - Content Automation Service
 
 ---
+<img width="1896" height="902" alt="image" src="https://github.com/user-attachments/assets/4130840b-5e16-4a2f-bf8f-a39a4d0558d7" />
 
 
 **Project Title:** Redistribute - Content Distribution Service (Inspired by Repurpose)
