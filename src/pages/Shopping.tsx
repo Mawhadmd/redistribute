@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { ShoppingCart, Star, Filter } from "lucide-react";
+import { ShoppingCart, Filter } from "lucide-react";
+import ShoppingCards from "../components/ShoppingCards.tsx";
 
 export default function Shopping() {
   const [cart, setCart] = useState<number[]>([]);
@@ -121,7 +122,7 @@ export default function Shopping() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary via-accent to-primary py-12 px-4">
+    <div className="min-h-screen py-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
@@ -167,85 +168,36 @@ export default function Shopping() {
         </div>
 
         {/* Shopping Cart Badge */}
-        <div className="fixed  top-6 right-6 z-50">
-          <button className="relative group p-3 bg-accent text-white rounded-full shadow-lg hover:bg-accent/90 transition">
+        <div className="fixed  bottom-6 right-6 z-50">
+          <button className="relative group p-3  bg-accent text-white rounded-full shadow-lg hover:bg-accent/90 transition">
             <ShoppingCart className="w-6 h-6" />
             {cart.length > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center pointer-events-none">
                 {cart.length}
               </span>
             )}
-            <div className="absolute p-2 group-hover:flex hidden -bottom-8 -left-16 w-fit bg-red-500 text-white text-xs font-bold rounded-full items-center justify-center pointer-events-none">
+            <div className="absolute p-2 group-hover:flex hidden -top-8 -left-16 w-fit bg-red-500 text-white text-xs font-bold rounded-full items-center justify-center pointer-events-none">
               There is no checkout
             </div>
           </button>
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products
-            .filter(
-              (product) => filter === "All" || product.category === filter
-            )
-            .filter(
-              (product) =>
-                product.name.toLowerCase().includes(search.toLowerCase()) ||
-                product.description.toLowerCase().includes(search.toLowerCase())
-            )
-            .map((product) => (
-              <div
-                key={product.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition group"
-              >
-                {/* Product Image */}
-                <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-xs font-semibold text-gray-700 shadow">
-                    {product.category}
-                  </div>
-                </div>
-
-                {/* Product Info */}
-                <div className="p-4">
-                  <h3 className="font-bold text-lg text-gray-900 mb-2">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                    {product.description}
-                  </p>
-
-                  {/* Rating */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-medium text-gray-900">
-                        {product.rating}
-                      </span>
-                    </div>
-                    <span className="text-sm text-gray-500">
-                      ({product.reviews} reviews)
-                    </span>
-                  </div>
-
-                  {/* Price and Add to Cart */}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                    <div className="text-2xl font-bold text-accent">
-                      ${product.price}
-                    </div>
-                    <button
-                      onClick={() => addToCart(product.id)}
-                      className="px-4 py-2 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition text-sm"
-                    >
-                      Add to Cart
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+        <div className="flex flex-wrap justify-center items-center gap-6">
+          <ShoppingCards
+            products={products
+              .filter(
+                (product) => filter === "All" || product.category === filter
+              )
+              .filter(
+                (product) =>
+                  product.name.toLowerCase().includes(search.toLowerCase()) ||
+                  product.description
+                    .toLowerCase()
+                    .includes(search.toLowerCase())
+              )}
+            onAddToCart={addToCart}
+          />
         </div>
       </div>
     </div>

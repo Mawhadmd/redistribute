@@ -8,11 +8,12 @@ export default function PhoneNavBar({isopen, SetphoneNav}: {isopen: boolean, Set
 
   const currentpage = useLocation().pathname;
   const pages = [
-          { to: "/Pricing", label: "Pricing" },
-          { to: "/small-business", label: "Small Business" },
-          { to: "/contact", label: "Contact" },
-          { to: "/About", label: "About" },
-          { to: "/content-creators", label: "Content Creators" },
+          {to:"/" , label:"Home"},
+    { to: "/Pricing", label: "Pricing" },
+    { to: "/shopping", label: "Shopping" },
+    { to: "/contact", label: "Contact" 
+    }
+    ,{to: "/about", label:"About"}
         ]
   return (
     <div id='phone-nav-bar' style={{transform: isopen ? 'translateX(0)' : 'translateX(100%)'}} className="transition-all flex flex-col justify-around items-center lg:hidden bg-white w-[50%] p-8 right-0  h-screen fixed top-0 border-l border-accent/20  shadow-lg z-50">
