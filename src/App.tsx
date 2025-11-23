@@ -13,8 +13,8 @@ import ErrorPage from "./pages/ErrorPage.tsx";
 import EmailContact from "./components/EmailContact.tsx";
 import TermsAndConditions from "./pages/Policies/TermsAndConditions.tsx";
 import PrivacyPolicy from "./pages/Policies/PrivacyPolicy.tsx";
-import Register from "./pages/Register.tsx";
-import Login from "./pages/Login.tsx";
+import Register from "./pages/auth/Register.tsx";
+import Login from "./pages/auth/Login.tsx";
 import DashboardLayout from "./pages/Dashboard/DashboardLayout.tsx";
 import Overview from "./pages/Dashboard/Overview.tsx";
 import Workflows from "./pages/Dashboard/Workflows.tsx";
@@ -24,6 +24,7 @@ import Schedule from "./pages/Dashboard/Schedule.tsx";
 import Analytics from "./pages/Dashboard/Analytics.tsx";
 import Billing from "./pages/Dashboard/Billing.tsx";
 import Settings from "./pages/Dashboard/Settings.tsx";
+import Shopping from "./pages/Shopping.tsx";
 
 // Landing page layout wrapper with Navbar and Footer
 function LandingLayout({ children }: { children: React.ReactNode }) {
@@ -32,7 +33,7 @@ function LandingLayout({ children }: { children: React.ReactNode }) {
       <header className="App-header">
         <Navbar />
       </header>
-      <main className="flex-1 flex flex-col p-2">{children}</main>
+      <main className="flex-1 flex flex-col">{children}</main>
       <Footer />
     </div>
   );
@@ -63,6 +64,16 @@ function App() {
         element={
           <LandingLayout>
             <SmallBusiness />
+               <Shopping/>
+          </LandingLayout>
+        }
+      />
+      <Route
+        path="/shopping"
+        element={
+          <LandingLayout>
+      
+               <Shopping/>
           </LandingLayout>
         }
       />
@@ -87,6 +98,7 @@ function App() {
         element={
           <LandingLayout>
             <ContentCreators />
+            <Shopping/>
           </LandingLayout>
         }
       />

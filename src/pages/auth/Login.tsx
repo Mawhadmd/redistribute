@@ -107,7 +107,7 @@ export default function Login() {
               )}
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between my-2 !mb-2">
               <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"

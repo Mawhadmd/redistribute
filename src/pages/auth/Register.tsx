@@ -172,7 +172,7 @@ export default function Register() {
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
                   className="mt-1 mr-3 w-4 h-4 accent-accent"
                 />
-                <span className="text-sm text-gray-600">
+                <span className="text-sm my-2 text-gray-600">
                   I agree to the{" "}
                   <Link
                     to="/terms-and-conditions"

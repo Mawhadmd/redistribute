@@ -45,11 +45,12 @@ export default function Navbar() {
   
   const currentpage = useLocation().pathname;
   const pages = [
+    {to:"/" , label:"Home"},
     { to: "/Pricing", label: "Pricing" },
-    { to: "/small-business", label: "Small Business" },
-    { to: "/contact", label: "Contact" },
-    { to: "/About", label: "About" },
-    { to: "/content-creators", label: "Content Creators" },
+    { to: "/shopping", label: "Shopping" },
+    { to: "/contact", label: "Contact" 
+    }
+    ,{to: "/about", label:"About"}
   ];
   return (
     <div className="  flex justify-between items-center w-full p-8 mb-4 h-18 gap-2">
@@ -78,7 +79,7 @@ export default function Navbar() {
         <BorderedButton style="xl:block hidden" text="Log in" to="/login" />
         <FilledButton text="Start Free Trial" to='/register' />
       </div>
-      <div className="flex gap-4">
+      <div className="flex gap-4 sm:hidden">
         <Link to={'/register'} className="sm:hidden text-accent">Start free trial</Link>
       <div
         onClick={(e) => {  e.stopPropagation(); SetphoneNav(true)}}
