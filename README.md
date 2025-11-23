@@ -1,11 +1,9 @@
 # Redistribute - Content Automation Service
-## Project Report
 
 ---
 
-## Title Page
 
-**Project Title:** Redistribute - Multi-Platform Content Distribution Service
+**Project Title:** Redistribute - Content Distribution Service (Inspired by Repurpose)
 
 **Project Type:** Web Application (Phase 1 - Frontend Demonstration)
 
