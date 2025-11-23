@@ -4,7 +4,8 @@ import { ShoppingCart, Star, Filter } from "lucide-react";
 export default function Shopping() {
   const [cart, setCart] = useState<number[]>([]);
   const [itemAdded, setItemAdded] = useState(false);
-
+  const [filter, setFilter] = useState("All");
+  const [search, setSearch] = useState("");
   const products = [
     {
       id: 1,
@@ -130,15 +131,22 @@ export default function Shopping() {
           <p className="text-xl text-gray-600">
             Professional gear and equipment for content creators
           </p>
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="mt-4 px-4 py-2 border rounded-lg w-full max-w-md mx-auto"
+          />
         </div>
-        
+
         {/* Notify that item is added */}
         {itemAdded && (
           <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
             ✓ Item added to cart!
           </div>
         )}
-        
+
         {/* Filters */}
         <div className="mb-8 flex items-center gap-4 flex-wrap justify-center">
           <div className="flex items-center gap-2">
@@ -148,6 +156,9 @@ export default function Shopping() {
           {categories.map((category) => (
             <button
               key={category}
+              onClick={() => {
+                setFilter(category);
+              }}
               className="px-4 py-2 rounded-lg border bg-primary border-gray-300 hover:border-accent hover:bg-secondary transition text-secondary hover:text-accent font-medium"
             >
               {category}
@@ -160,75 +171,82 @@ export default function Shopping() {
           <button className="relative group p-3 bg-accent text-white rounded-full shadow-lg hover:bg-accent/90 transition">
             <ShoppingCart className="w-6 h-6" />
             {cart.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center pointer-events-none">
                 {cart.length}
               </span>
             )}
-            <div className="absolute p-2 group-hover:flex hidden -bottom-8 -left-16 w-fit bg-red-500 text-white text-xs font-bold rounded-full items-center justify-center">
-              It's a demo
+            <div className="absolute p-2 group-hover:flex hidden -bottom-8 -left-16 w-fit bg-red-500 text-white text-xs font-bold rounded-full items-center justify-center pointer-events-none">
+              There is no checkout
             </div>
           </button>
         </div>
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition group"
-            >
-              {/* Product Image */}
-              <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-xs font-semibold text-gray-700 shadow">
-                  {product.category}
+          {products
+            .filter(
+              (product) => filter === "All" || product.category === filter
+            )
+            .filter(
+              (product) =>
+                product.name.toLowerCase().includes(search.toLowerCase()) ||
+                product.description.toLowerCase().includes(search.toLowerCase())
+            )
+            .map((product) => (
+              <div
+                key={product.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition group"
+              >
+                {/* Product Image */}
+                <div className="aspect-square bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded-full text-xs font-semibold text-gray-700 shadow">
+                    {product.category}
+                  </div>
                 </div>
-              </div>
 
-              {/* Product Info */}
-              <div className="p-4">
-                <h3 className="font-bold text-lg text-gray-900 mb-2">
-                  {product.name}
-                </h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                  {product.description}
-                </p>
+                {/* Product Info */}
+                <div className="p-4">
+                  <h3 className="font-bold text-lg text-gray-900 mb-2">
+                    {product.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                    {product.description}
+                  </p>
 
-                {/* Rating */}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium text-gray-900">
-                      {product.rating}
+                  {/* Rating */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-medium text-gray-900">
+                        {product.rating}
+                      </span>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      ({product.reviews} reviews)
                     </span>
                   </div>
-                  <span className="text-sm text-gray-500">
-                    ({product.reviews} reviews)
-                  </span>
-                </div>
 
-                {/* Price and Add to Cart */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                  <div className="text-2xl font-bold text-accent">
-                    ${product.price}
+                  {/* Price and Add to Cart */}
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                    <div className="text-2xl font-bold text-accent">
+                      ${product.price}
+                    </div>
+                    <button
+                      onClick={() => addToCart(product.id)}
+                      className="px-4 py-2 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition text-sm"
+                    >
+                      Add to Cart
+                    </button>
                   </div>
-                  <button
-                    onClick={() => addToCart(product.id)}
-                    className="px-4 py-2 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition text-sm"
-                  >
-                    Add to Cart
-                  </button>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
-
- 
       </div>
     </div>
   );

@@ -91,6 +91,13 @@ The application consists of the following main modules:
 - Feature breakdown by tier
 - Dynamic price calculation
 
+
+#### **2.4 Shopping Page**
+- User can add items to the cart
+- User can filter items
+- User can search
+- See "item added" notifications
+
 ### 3. Design Patterns
 
 **Component-Based Architecture:** The application utilizes React's component-based structure for reusability and maintainability.
