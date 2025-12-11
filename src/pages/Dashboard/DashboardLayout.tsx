@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import {
   LayoutDashboard,
@@ -14,11 +14,37 @@ import {
   CreditCard,
   RefreshCcw,
 } from "lucide-react";
+import { getCurrentUser, signOut } from "../../lib/supabase.ts";
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (!user) {
+          console.log("No user found, redirecting to login");
+          navigate("/login");
+          return;
+        }
+        console.log("User authenticated:", user.email);
+        setIsAuthorized(true);
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        navigate("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
 
   const navItems = [
     { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },
@@ -31,14 +57,37 @@ export default function DashboardLayout() {
     { icon: Settings, label: "Settings", path: "/dashboard/settings" },
   ];
 
-  const handleLogout = () => {
-    // Clear logged in user
+const handleLogout = async () => {
+    try {
+      // Sign out from Supabase
+      await signOut();
+      console.log("User logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    
+    // Clear local storage
     localStorage.removeItem("currentUser");
-    navigate("/");
+    localStorage.removeItem("userSession");
+    
+    navigate("/login");
   };
 
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="text-gray-600 text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return null;
+  }
+
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen relative bg-gray-50">
+      <div className="absolute inset-0 bg-slate-500/50 z-[500] flex justify-center items-center text-4xl font-italic">Coming soon <button onClick={handleLogout} className="ml-4 px-4 py-2 bg-red-600 text-white rounded-lg">Logout</button></div>
       {/* Sidebar */}
       <aside
         className={`${

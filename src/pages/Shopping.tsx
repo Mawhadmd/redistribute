@@ -1,102 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { ShoppingCart, Filter } from "lucide-react";
 import ShoppingCards from "../components/ShoppingCards.tsx";
+import { getShopItems, ShopItem } from "../lib/supabase.ts";
 
 export default function Shopping() {
   const [cart, setCart] = useState<number[]>([]);
   const [itemAdded, setItemAdded] = useState(false);
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
-  const products = [
-    {
-      id: 1,
-      name: "Ring Light Pro",
-      price: 49.99,
-      rating: 4.8,
-      reviews: 234,
-      image:
-        "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=500&q=80",
-      category: "Lighting",
-      description: "Professional LED ring light with adjustable brightness",
-    },
-    {
-      id: 2,
-      name: "Wireless Lavalier Mic",
-      price: 79.99,
-      rating: 4.9,
-      reviews: 456,
-      image:
-        "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=500&q=80",
-      category: "Audio",
-      description: "Crystal clear audio for content creators",
-    },
-    {
-      id: 3,
-      name: "Smartphone Gimbal",
-      price: 129.99,
-      rating: 4.7,
-      reviews: 189,
-      image:
-        "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500&q=80",
-      category: "Stabilization",
-      description: "3-axis gimbal for smooth video recording",
-    },
-    {
-      id: 4,
-      name: "Softbox Lighting Kit",
-      price: 89.99,
-      rating: 4.6,
-      reviews: 312,
-      image:
-        "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500&q=80",
-      category: "Lighting",
-      description: "Complete softbox setup for professional lighting",
-    },
-    {
-      id: 5,
-      name: "USB Condenser Mic",
-      price: 99.99,
-      rating: 4.9,
-      reviews: 567,
-      image:
-        "https://images.unsplash.com/photo-1589003077984-894e133dabab?w=500&q=80",
-      category: "Audio",
-      description: "Studio-quality USB microphone",
-    },
-    {
-      id: 6,
-      name: "Green Screen Backdrop",
-      price: 39.99,
-      rating: 4.5,
-      reviews: 201,
-      image:
-        "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=500&q=80",
-      category: "Backgrounds",
-      description: "Collapsible chroma key green screen",
-    },
-    {
-      id: 7,
-      name: "Camera Tripod Stand",
-      price: 59.99,
-      rating: 4.7,
-      reviews: 389,
-      image:
-        "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=500&q=80",
-      category: "Accessories",
-      description: "Adjustable tripod with phone mount",
-    },
-    {
-      id: 8,
-      name: "LED Panel Light",
-      price: 119.99,
-      rating: 4.8,
-      reviews: 278,
-      image:
-        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80",
-      category: "Lighting",
-      description: "Bi-color LED panel with remote control",
-    },
-  ];
+  const [products, setProducts] = useState<ShopItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  async function loadProducts() {
+    try {
+      setLoading(true);
+      const data = await getShopItems();
+      setProducts(data || []);
+    } catch (error) {
+      console.error("Error loading products:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const addToCart = (productId: number) => {
     setCart([...cart, productId]);
@@ -120,7 +49,13 @@ export default function Shopping() {
     "Backgrounds",
     "Accessories",
   ];
-
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-primary via-accent to-primary py-12 px-4 flex items-center justify-center">
+        <div className="text-2xl text-gray-600">Loading products...</div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-7xl mx-auto">
@@ -191,7 +126,7 @@ export default function Shopping() {
               )
               .filter(
                 (product) =>
-                  product.name.toLowerCase().includes(search.toLowerCase()) ||
+                  product.title.toLowerCase().includes(search.toLowerCase()) ||
                   product.description
                     .toLowerCase()
                     .includes(search.toLowerCase())

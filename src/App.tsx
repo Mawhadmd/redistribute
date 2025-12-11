@@ -24,7 +24,13 @@ import Schedule from "./pages/Dashboard/Schedule.tsx";
 import Analytics from "./pages/Dashboard/Analytics.tsx";
 import Billing from "./pages/Dashboard/Billing.tsx";
 import Settings from "./pages/Dashboard/Settings.tsx";
+import AdminHome from "./pages/admin/adminHome.tsx";
 import Shopping from "./pages/Shopping.tsx";
+import AdminLayout from "./pages/admin/AdminLayout.tsx";
+import AdminShopping from "./pages/admin/Shop/AdminShopping.tsx";
+import { createClient } from "@supabase/supabase-js";
+import { useEffect } from "react";
+import AdminLogin from "./pages/admin/auth/adminlogin.tsx";
 
 // Landing page layout wrapper with Navbar and Footer
 function LandingLayout({ children }: { children: React.ReactNode }) {
@@ -38,8 +44,24 @@ function LandingLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
+export const supabase = createClient(
+  process.env.REACT_APP_SUPABASE_URL || "",
+  process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY || ""
+);
 function App() {
+  // @ts-ignore: Vite env variables
+
+  useEffect(() => {
+    // Check for existing session on app load
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        console.log("User is logged in:", session.user);
+      } else {
+        console.log("No user session found");
+      }
+    });
+  },[]);
+
   return (
     <Routes>
       {/* Landing pages with Navbar and Footer */}
@@ -64,7 +86,7 @@ function App() {
         element={
           <LandingLayout>
             <SmallBusiness />
-               <Shopping/>
+            <Shopping />
           </LandingLayout>
         }
       />
@@ -72,8 +94,7 @@ function App() {
         path="/shopping"
         element={
           <LandingLayout>
-      
-               <Shopping/>
+            <Shopping />
           </LandingLayout>
         }
       />
@@ -98,7 +119,7 @@ function App() {
         element={
           <LandingLayout>
             <ContentCreators />
-            <Shopping/>
+            <Shopping />
           </LandingLayout>
         }
       />
@@ -142,7 +163,12 @@ function App() {
         <Route path="billing" element={<Billing />} />
         <Route path="settings" element={<Settings />} />
       </Route>
-
+      {/* Admin */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminHome />} />
+        <Route path="shopping" element={<AdminShopping />} />
+      </Route>
+        <Route path="/admin/login" element={<AdminLogin />} />
       {/* Error page without layout */}
       <Route path="*" element={<ErrorPage />} />
     </Routes>

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router";
-import { Facebook, Twitter, Youtube, Instagram, Linkedin } from "lucide-react";
+import { Facebook, Twitter, Youtube, Instagram, Linkedin, ShieldEllipsis, Shield } from "lucide-react";
 
 export default function Footer() {
   const integrations = [
@@ -190,6 +190,9 @@ export default function Footer() {
             <a href="#" className="text-gray-600 hover:text-accent transition">
               <Linkedin className="w-5 h-5" />
             </a>
+            <Link to="/admin" className="text-gray-600 hover:text-accent transition">
+              <Shield/>
+            </Link>
           </div>
         </div>
       </div>
