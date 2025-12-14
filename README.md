@@ -79,4 +79,4 @@ public/             # Static assets (images, videos)
 
 ---
 
-**Migrated:** December 14, 2025 | **Original:** D:\desktop\web project\react-project\Frontend
+**Migrated:** December 14, 2025 
