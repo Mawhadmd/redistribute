@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Redistribute.io - Next.js Migration
 
-## Getting Started
+Successfully migrated from Create React App to Next.js 15 (App Router).
 
-First, run the development server:
+## ✅ Migration Complete
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+All CRA features migrated including:
+
+- **Landing Pages**: Home, Pricing, About, Contact, Small Business, Content Creators
+- **Auth**: Login, Register
+- **Dashboard**: Overview + 7 dashboard pages (protected routes)
+- **Shopping**: Product catalog with filtering
+- **Policies**: Terms & Privacy Policy
+
+## 🚀 Quick Start
+
+1. **Install dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+2. **Set up environment variables** - Create `.env.local`:
+
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_key
+   NEXT_PUBLIC_ADMIN_MASTER_PASSWORD=your_admin_password
+   ```
+
+3. **Run development server:**
+
+   ```bash
+   npm run dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000)
+
+## 🔑 Key Changes from CRA
+
+- **Routing**: File-based (App Router) instead of React Router
+- **Links**: `<Link href="/path">` instead of `<Link to="/path">`
+- **Navigation**: `useRouter()` from `next/navigation` instead of `useNavigate()`
+- **Client Components**: Add `"use client"` directive for hooks/browser APIs
+- **Environment**: `NEXT_PUBLIC_*` instead of `REACT_APP_*`
+- **Images**: Use `/image.webp` for static files or `<Image>` component
+
+## 📦 Tech Stack
+
+- Next.js 15 + React 19 + TypeScript
+- Tailwind CSS (Montserrat font)
+- Supabase (auth & database)
+- Lucide React (icons)
+- Zod (validation)
+
+## 📁 Structure
+
+```
+app/
+├── components/      # Shared UI components
+├── lib/            # Supabase client & utilities
+├── dashboard/      # Protected dashboard (coming soon overlay)
+├── login/register/ # Auth pages
+└── [pages]/        # Public routes
+public/             # Static assets (images, videos)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📝 Notes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Dashboard has "Coming soon" overlay (remove from `app/dashboard/layout.tsx`)
+- Configure Supabase tables: `users`, `ShopItems`
+- Shopping cart is demo only (no checkout)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🐛 Troubleshooting
 
-## Learn More
+- **Build errors?** Delete `.next` folder and rebuild
+- **Supabase errors?** Check environment variables
+- **Styling issues?** Verify Tailwind config
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Migrated:** December 14, 2025 | **Original:** D:\desktop\web project\react-project\Frontend
