@@ -17,13 +17,10 @@ import Register from "./pages/auth/Register.tsx";
 import Login from "./pages/auth/Login.tsx";
 import DashboardLayout from "./pages/Dashboard/DashboardLayout.tsx";
 import Overview from "./pages/Dashboard/Overview.tsx";
+import Uploads from "./pages/Dashboard/Uploads.tsx";
 import Workflows from "./pages/Dashboard/Workflows.tsx";
-import Content from "./pages/Dashboard/Content.tsx";
-import Accounts from "./pages/Dashboard/Accounts.tsx";
-import Schedule from "./pages/Dashboard/Schedule.tsx";
-import Analytics from "./pages/Dashboard/Analytics.tsx";
-import Billing from "./pages/Dashboard/Billing.tsx";
-import Settings from "./pages/Dashboard/Settings.tsx";
+
+
 import AdminHome from "./pages/admin/adminHome.tsx";
 import Shopping from "./pages/Shopping.tsx";
 import Cart from "./pages/Cart.tsx";
@@ -150,13 +147,10 @@ function App() {
         {/* Dashboard with its own layout */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<Overview />} />
+          <Route path="uploads" element={<Uploads />} />
           <Route path="workflows" element={<Workflows />} />
-          <Route path="content" element={<Content />} />
-          <Route path="accounts" element={<Accounts />} />
-          <Route path="schedule" element={<Schedule />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="billing" element={<Billing />} />
-          <Route path="settings" element={<Settings />} />
+  
+     
         </Route>
         {/* Admin */}
         <Route path="/admin" element={<AdminLayout />}>

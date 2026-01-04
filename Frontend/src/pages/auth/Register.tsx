@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Mail, Lock, User, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  CheckCircle2,
+  AlertCircle,
+  CreditCard,
+} from "lucide-react";
 import { userSignUp, verifyToken, getToken } from "../../lib/api.ts";
 
 export default function Register() {
@@ -9,6 +16,10 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
+  const [cardName, setCardName] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
@@ -83,7 +94,7 @@ export default function Register() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">Start Your Free Trial</h1>
           <p className="text-gray-600">
-            No credit card required. 14 days free.
+            Add payment info to continue after trial. 14 days free.
           </p>
         </div>
 
@@ -192,6 +203,107 @@ export default function Register() {
                   {errors.confirmPassword}
                 </p>
               )}
+            </div>
+
+            {/* Credit Card Section */}
+            <div className="border-t border-gray-200 pt-5 mt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <CreditCard className="w-5 h-5 text-accent" />
+                <h3 className="font-semibold text-gray-900">
+                  Payment Information
+                </h3>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  Optional
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Add your card now to seamlessly continue after your free trial
+                ends. Your card won't be charged during the trial period.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                    Cardholder Name
+                  </label>
+                  <input
+                    type="text"
+                    value={cardName}
+                    onChange={(e) => setCardName(e.target.value)}
+                    placeholder="John Doe"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                    Card Number
+                  </label>
+                  <input
+                    type="text"
+                    value={cardNumber}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      if (value.length <= 16) {
+                        const formatted =
+                          value.match(/.{1,4}/g)?.join(" ") || value;
+                        setCardNumber(formatted);
+                      }
+                    }}
+                    placeholder="1234 5678 9012 3456"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
+                    disabled={loading}
+                    maxLength={19}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block mb-2 text-sm font-medium text-gray-700">
+                      Expiry Date
+                    </label>
+                    <input
+                      type="text"
+                      value={cardExpiry}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        if (value.length <= 4) {
+                          const formatted =
+                            value.length >= 2
+                              ? `${value.slice(0, 2)}/${value.slice(2)}`
+                              : value;
+                          setCardExpiry(formatted);
+                        }
+                      }}
+                      placeholder="MM/YY"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
+                      disabled={loading}
+                      maxLength={5}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block mb-2 text-sm font-medium text-gray-700">
+                      CVC
+                    </label>
+                    <input
+                      type="text"
+                      value={cardCvc}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        if (value.length <= 4) {
+                          setCardCvc(value);
+                        }
+                      }}
+                      placeholder="123"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
+                      disabled={loading}
+                      maxLength={4}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div>

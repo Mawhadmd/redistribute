@@ -54,6 +54,55 @@ function authenticateToken(req, res, next) {
   });
 }
 
+// Trial check middleware (skips admins)
+async function checkTrialStatus(req, res, next) {
+  try {
+    // Admins bypass trial check
+    if (req.user.role === "admin") {
+      return next();
+    }
+
+    // Get user subscription status
+    const { data: userData, error } = await supabase
+      .from("users")
+      .select("trial_end_date, subscription_status")
+      .eq("id", req.user.id)
+      .single();
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Error checking trial status",
+      });
+    }
+
+    // If user has active subscription, allow access
+    if (userData.subscription_status === "active") {
+      return next();
+    }
+
+    // Check if trial has expired
+    const now = new Date();
+    const trialEnd = new Date(userData.trial_end_date);
+
+    if (now > trialEnd) {
+      return res.status(402).json({
+        success: false,
+        message: "Trial period has ended",
+        trialExpired: true,
+      });
+    }
+
+    // Trial is still active
+    next();
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+}
+
 // Generate JWT Token
 function generateToken(user) {
   return jwt.sign(
@@ -153,6 +202,10 @@ app.post("/api/auth/signup", async (req, res) => {
     }
 
     if (authData.user) {
+      // Calculate trial end date (14 days from now)
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 14);
+
       const { error: profileError } = await supabase.from("users").insert([
         {
           id: authData.user.id,
@@ -160,6 +213,8 @@ app.post("/api/auth/signup", async (req, res) => {
           display_name: displayName,
           role: "user",
           created_at: new Date().toISOString(),
+          trial_end_date: trialEndDate.toISOString(),
+          subscription_status: "trial",
         },
       ]);
 
@@ -228,13 +283,35 @@ app.post("/api/auth/signin", async (req, res) => {
         .from("users")
         .select("role")
         .eq("id", data.user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         return res.status(400).json({
           success: false,
           message: profileError.message,
         });
+      }
+
+      // If no profile exists, create one
+      if (!profileData) {
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 14);
+
+        const { error: insertError } = await supabase.from("users").insert([
+          {
+            id: data.user.id,
+            email: data.user.email,
+            display_name: data.user.email.split("@")[0],
+            role: "user",
+            created_at: new Date().toISOString(),
+            trial_end_date: trialEndDate.toISOString(),
+            subscription_status: "trial",
+          },
+        ]);
+
+        if (insertError) {
+          console.error("Error creating user profile:", insertError);
+        }
       }
 
       const userRole = profileData?.role || "user";
@@ -279,20 +356,106 @@ app.post("/api/auth/signout", async (req, res) => {
 });
 
 // Get current user (protected route)
-app.get("/api/auth/user", authenticateToken, async (req, res) => {
-  try {
-    // User info is already in req.user from the JWT middleware
-    res.status(200).json({
-      success: true,
-      data: req.user,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+app.get(
+  "/api/auth/user",
+  authenticateToken,
+  checkTrialStatus,
+  async (req, res) => {
+    try {
+      // Get user details including trial info
+      const { data: userData, error } = await supabase
+        .from("users")
+        .select("trial_end_date, subscription_status, display_name")
+        .eq("id", req.user.id)
+        .maybeSingle();
+
+      if (error) {
+        return res.status(500).json({
+          success: false,
+          message: "Error fetching user data: " + error.message,
+        });
+      }
+
+      // If no user record exists, create one
+      if (!userData) {
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 14);
+
+        const { data: newUser, error: insertError } = await supabase
+          .from("users")
+          .insert([
+            {
+              id: req.user.id,
+              email: req.user.email,
+              display_name: req.user.email?.split("@")[0] || "User",
+              role: req.user.role || "user",
+              created_at: new Date().toISOString(),
+              trial_end_date: trialEndDate.toISOString(),
+              subscription_status: "trial",
+            },
+          ])
+          .select()
+          .single();
+
+        if (insertError) {
+          return res.status(500).json({
+            success: false,
+            message: "Error creating user profile: " + insertError.message,
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          data: {
+            ...req.user,
+            displayName: newUser.display_name,
+            trialEndDate: newUser.trial_end_date,
+            subscriptionStatus: newUser.subscription_status,
+            daysRemaining: 14,
+          },
+        });
+      }
+
+      // Handle users without trial_end_date (existing users)
+      let daysRemaining = 0;
+      if (userData.trial_end_date) {
+        const now = new Date();
+        const trialEnd = new Date(userData.trial_end_date);
+        daysRemaining = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+      } else {
+        // Set trial for existing users who don't have it
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 14);
+
+        await supabase
+          .from("users")
+          .update({
+            trial_end_date: trialEndDate.toISOString(),
+            subscription_status: "trial",
+          })
+          .eq("id", req.user.id);
+
+        daysRemaining = 14;
+      }
+
+      res.status(200).json({
+        success: true,
+        data: {
+          ...req.user,
+          displayName: userData.display_name,
+          trialEndDate: userData.trial_end_date,
+          subscriptionStatus: userData.subscription_status,
+          daysRemaining: daysRemaining > 0 ? daysRemaining : 0,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
   }
-});
+);
 
 // Verify token endpoint
 app.get("/api/auth/verify", authenticateToken, (req, res) => {
@@ -301,6 +464,517 @@ app.get("/api/auth/verify", authenticateToken, (req, res) => {
     data: req.user,
   });
 });
+
+// ============ SHOP ROUTES ============
+
+// Get user's YouTube channels
+app.get(
+  "/api/channels",
+  authenticateToken,
+  checkTrialStatus,
+  async (req, res) => {
+    try {
+      const { data, error } = await supabase
+        .from("youtube_channels")
+        .select("*")
+        .eq("user_id", req.user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// Add a new YouTube channel
+app.post(
+  "/api/channels",
+  authenticateToken,
+  checkTrialStatus,
+  async (req, res) => {
+    try {
+      const { channelId } = req.body;
+
+      if (!channelId) {
+        return res.status(400).json({
+          success: false,
+          message: "Channel ID is required",
+        });
+      }
+
+      // Validate YouTube API key
+      const youtubeApiKey = process.env.YOUTUBE_API_KEY;
+      if (!youtubeApiKey) {
+        return res.status(500).json({
+          success: false,
+          message: "YouTube API key not configured",
+        });
+      }
+
+      // Fetch channel data from YouTube API to validate and get channel name
+      let channelData;
+      try {
+        let apiUrl;
+
+        // Check if input is a channel ID (starts with UC and 24 chars total)
+        if (/^UC[\w-]{22}$/.test(channelId)) {
+          // Direct channel ID lookup
+          apiUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelId}&key=${youtubeApiKey}`;
+        } else if (channelId.startsWith("@")) {
+          // Handle format - need to use forHandle parameter
+          const handle = channelId.replace("@", "");
+          apiUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forHandle=${handle}&key=${youtubeApiKey}`;
+        } else {
+          // Try as username first
+          apiUrl = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forUsername=${channelId}&key=${youtubeApiKey}`;
+        }
+
+        const response = await axios.get(apiUrl);
+
+        if (!response.data.items || response.data.items.length === 0) {
+          return res.status(404).json({
+            success: false,
+            message:
+              "Channel not found on YouTube. Please provide a valid channel ID (starts with UC) or handle (@username).",
+          });
+        }
+
+        channelData = response.data.items[0];
+        // Use the actual channel ID from the response
+        channelId = channelData.id;
+      } catch (youtubeError) {
+        console.error(
+          "YouTube API error:",
+          youtubeError.response?.data || youtubeError.message
+        );
+        return res.status(400).json({
+          success: false,
+          message:
+            "Failed to fetch channel from YouTube. Please verify the channel ID is correct.",
+        });
+      }
+
+      // Check if channel already exists for this user
+      const { data: existingChannel } = await supabase
+        .from("youtube_channels")
+        .select("*")
+        .eq("user_id", req.user.id)
+        .eq("channel_id", channelId)
+        .single();
+
+      if (existingChannel) {
+        return res.status(400).json({
+          success: false,
+          message: "You've already added this channel",
+        });
+      }
+
+      // Generate verification code
+      const verificationCode = `verify-${Math.random()
+        .toString(36)
+        .substring(2, 10)}-${Date.now().toString(36)}`;
+
+      // Insert channel with fetched data
+      // Note: channel_thumbnail and subscriber_count are optional fields
+      // Only include them if the columns exist in your database
+      const channelInsertData = {
+        user_id: req.user.id,
+        channel_id: channelId,
+        channel_name: channelData.snippet.title,
+        verification_code: verificationCode,
+        is_verified: false,
+        added_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
+        .from("youtube_channels")
+        .insert([channelInsertData])
+        .select();
+
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      res.status(201).json({
+        success: true,
+        data: data[0],
+        message: `Successfully added ${channelData.snippet.title}`,
+      });
+    } catch (error) {
+      console.error("Error adding channel:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// Verify a YouTube channel
+app.post(
+  "/api/channels/:id/verify",
+  authenticateToken,
+  checkTrialStatus,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Get channel from database
+      const { data: channel, error: fetchError } = await supabase
+        .from("youtube_channels")
+        .select("*")
+        .eq("id", id)
+        .eq("user_id", req.user.id)
+        .single();
+
+      if (fetchError || !channel) {
+        return res.status(404).json({
+          success: false,
+          message: "Channel not found",
+        });
+      }
+
+      // Fetch channel description from YouTube API
+      const youtubeApiKey = process.env.YOUTUBE_API_KEY;
+      if (!youtubeApiKey) {
+        return res.status(500).json({
+          success: false,
+          message: "YouTube API key not configured",
+        });
+      }
+
+      const response = await axios.get(
+        `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channel.channel_id}&key=${youtubeApiKey}`
+      );
+
+      if (!response.data.items || response.data.items.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Channel not found on YouTube",
+        });
+      }
+
+      const channelDescription = response.data.items[0].snippet.description;
+
+      // Check if verification code is in the description
+      if (channelDescription.includes(channel.verification_code)) {
+        // Update channel to verified
+        const { data: updatedChannel, error: updateError } = await supabase
+          .from("youtube_channels")
+          .update({ is_verified: true })
+          .eq("id", id)
+          .select();
+
+        if (updateError) {
+          return res.status(400).json({
+            success: false,
+            message: updateError.message,
+          });
+        }
+
+        // Subscribe to YouTube webhook notifications
+        const callbackUrl = `${
+          process.env.BACKEND_URL || "http://localhost:5000"
+        }/api/webhooks/youtube`;
+        await subscribeToChannel(channel.channel_id, callbackUrl);
+
+        res.status(200).json({
+          success: true,
+          message: "Channel verified successfully",
+          data: updatedChannel[0],
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "Verification code not found in channel description",
+        });
+      }
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// Delete a YouTube channel
+app.delete(
+  "/api/channels/:id",
+  authenticateToken,
+  checkTrialStatus,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Get channel before deleting
+      const { data: channel } = await supabase
+        .from("youtube_channels")
+        .select("channel_id")
+        .eq("id", id)
+        .eq("user_id", req.user.id)
+        .single();
+
+      const { error } = await supabase
+        .from("youtube_channels")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", req.user.id);
+
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      }
+
+      // Unsubscribe from YouTube webhook
+      if (channel) {
+        const callbackUrl = `${
+          process.env.BACKEND_URL || "http://localhost:5000"
+        }/api/webhooks/youtube`;
+        await unsubscribeFromChannel(channel.channel_id, callbackUrl);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Channel deleted successfully",
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// Get uploads for user's verified channels
+app.get(
+  "/api/uploads",
+  authenticateToken,
+  checkTrialStatus,
+  async (req, res) => {
+    try {
+      // Get user's verified channels
+      const { data: channels, error: channelsError } = await supabase
+        .from("youtube_channels")
+        .select("channel_id")
+        .eq("user_id", req.user.id)
+        .eq("is_verified", true);
+
+      if (channelsError) {
+        return res.status(400).json({
+          success: false,
+          message: channelsError.message,
+        });
+      }
+
+      if (!channels || channels.length === 0) {
+        return res.status(200).json({
+          success: true,
+          data: [],
+        });
+      }
+
+      const channelIds = channels.map((c) => c.channel_id);
+
+      // Get uploads for these channels
+      const { data: uploads, error: uploadsError } = await supabase
+        .from("youtube_uploads")
+        .select("*")
+        .in("channel_id", channelIds)
+        .order("uploaded_at", { ascending: false })
+        .limit(50);
+
+      if (uploadsError) {
+        return res.status(400).json({
+          success: false,
+          message: uploadsError.message,
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        data: uploads || [],
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+);
+
+// ============ YOUTUBE WEBHOOK ROUTES ============
+
+/**
+ * Subscribe to YouTube channel updates via PubSubHubbub
+ */
+async function subscribeToChannel(channelId, callbackUrl) {
+  const hubUrl = "https://pubsubhubbub.appspot.com/subscribe";
+  const topicUrl = `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`;
+
+  try {
+    const response = await axios.post(
+      hubUrl,
+      new URLSearchParams({
+        "hub.callback": callbackUrl,
+        "hub.topic": topicUrl,
+        "hub.verify": "async",
+        "hub.mode": "subscribe",
+        "hub.lease_seconds": "864000", // 10 days
+      }).toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+    console.log(`✓ Subscribed to channel: ${channelId}`);
+    return true;
+  } catch (error) {
+    console.error(`✗ Failed to subscribe to ${channelId}:`, error.message);
+    return false;
+  }
+}
+
+/**
+ * Unsubscribe from YouTube channel updates
+ */
+async function unsubscribeFromChannel(channelId, callbackUrl) {
+  const hubUrl = "https://pubsubhubbub.appspot.com/subscribe";
+  const topicUrl = `https://www.youtube.com/xml/feeds/videos.xml?channel_id=${channelId}`;
+
+  try {
+    await axios.post(
+      hubUrl,
+      new URLSearchParams({
+        "hub.callback": callbackUrl,
+        "hub.topic": topicUrl,
+        "hub.verify": "async",
+        "hub.mode": "unsubscribe",
+      }).toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+    console.log(`✓ Unsubscribed from channel: ${channelId}`);
+    return true;
+  } catch (error) {
+    console.error(`✗ Failed to unsubscribe from ${channelId}:`, error.message);
+    return false;
+  }
+}
+
+// YouTube webhook verification (GET) and notification (POST)
+app.get("/api/webhooks/youtube", (req, res) => {
+  // YouTube sends verification challenge
+  const challenge = req.query["hub.challenge"];
+  const mode = req.query["hub.mode"];
+  const topic = req.query["hub.topic"];
+
+  console.log(`YouTube webhook verification: mode=${mode}, topic=${topic}`);
+
+  if (challenge) {
+    // Respond with challenge to confirm subscription
+    res.status(200).send(challenge);
+  } else {
+    res.status(400).send("No challenge found");
+  }
+});
+
+app.post(
+  "/api/webhooks/youtube",
+  express.raw({ type: "application/atom+xml" }),
+  async (req, res) => {
+    try {
+      // Parse XML notification from YouTube
+      const xml = req.body.toString();
+      const parser = new xml2js.Parser();
+      const result = await parser.parseStringPromise(xml);
+
+      // Extract video information
+      const entry = result.feed?.entry?.[0];
+      if (!entry) {
+        return res.status(200).send("OK");
+      }
+
+      const videoId = entry["yt:videoId"]?.[0];
+      const channelId = entry["yt:channelId"]?.[0];
+      const title = entry.title?.[0];
+      const published = entry.published?.[0];
+
+      if (!videoId || !channelId) {
+        return res.status(200).send("OK");
+      }
+
+      console.log(`📹 New upload detected: ${title} (${videoId})`);
+
+      // Get channel info from database
+      const { data: channel } = await supabase
+        .from("youtube_channels")
+        .select("channel_name, user_id")
+        .eq("channel_id", channelId)
+        .eq("is_verified", true)
+        .single();
+
+      if (channel) {
+        // Store upload in database
+        const { error } = await supabase.from("youtube_uploads").upsert(
+          [
+            {
+              channel_id: channelId,
+              video_id: videoId,
+              video_title: title,
+              uploaded_at: published,
+              notified_at: new Date().toISOString(),
+            },
+          ],
+          { onConflict: "video_id" }
+        );
+
+        if (!error) {
+          // Send real-time notification via WebSocket
+          io.to(`user:${channel.user_id}`).emit("new-upload", {
+            channelId,
+            channelName: channel.channel_name,
+            videoId,
+            videoTitle: title,
+            uploadedAt: published,
+          });
+
+          console.log(`✓ Notified user ${channel.user_id} of new upload`);
+        }
+      }
+
+      res.status(200).send("OK");
+    } catch (error) {
+      console.error("Error processing YouTube webhook:", error);
+      res.status(200).send("OK"); // Always return 200 to YouTube
+    }
+  }
+);
 
 // ============ SHOP ROUTES ============
 

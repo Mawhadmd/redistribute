@@ -20,6 +20,9 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [trialExpired, setTrialExpired] = useState(false);
+  const [daysRemaining, setDaysRemaining] = useState(0);
+  const [userRole, setUserRole] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -37,9 +40,19 @@ export default function DashboardLayout() {
         // Verify token with backend
         const user = await verifyToken();
         console.log("User authenticated:", user.email);
+        setUserRole(user.role || "user");
+        setDaysRemaining(user.daysRemaining || 0);
         setIsAuthorized(true);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Auth check failed:", error);
+
+        // Check if trial expired (402 status)
+        if (error.response?.status === 402 || error.trialExpired) {
+          setTrialExpired(true);
+          setLoading(false);
+          return;
+        }
+
         localStorage.removeItem("authToken");
         localStorage.removeItem("userInfo");
         navigate("/login");
@@ -53,13 +66,9 @@ export default function DashboardLayout() {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },
+    { icon: Video, label: "Uploads", path: "/dashboard/uploads" },
     { icon: Workflow, label: "Workflows", path: "/dashboard/workflows" },
-    { icon: Video, label: "Content", path: "/dashboard/content" },
-    { icon: Users, label: "Accounts", path: "/dashboard/accounts" },
-    { icon: Calendar, label: "Schedule", path: "/dashboard/schedule" },
-    { icon: BarChart3, label: "Analytics", path: "/dashboard/analytics" },
-    { icon: CreditCard, label: "Billing", path: "/dashboard/billing" },
-    { icon: Settings, label: "Settings", path: "/dashboard/settings" },
+ 
   ];
 
   const handleLogout = async () => {
@@ -89,17 +98,44 @@ export default function DashboardLayout() {
     return null;
   }
 
+  // Show trial expired screen
+  if (trialExpired) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full mx-4">
+          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CreditCard className="w-8 h-8 text-red-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Trial Period Ended
+            </h1>
+            <p className="text-gray-600 mb-6">
+              Your 14-day trial has expired. Please upgrade to continue using
+              the service.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={() => navigate("/pricing")}
+                className="w-full py-3 bg-accent text-white rounded-lg font-semibold hover:bg-accent/90 transition"
+              >
+                View Pricing Plans
+              </button>
+              <button
+                onClick={handleLogout}
+                className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen relative bg-gray-50">
-      <div className="absolute inset-0 bg-slate-500/50 z-[500] flex justify-center items-center text-4xl font-italic">
-        Coming soon{" "}
-        <button
-          onClick={handleLogout}
-          className="ml-4 px-4 py-2 bg-red-600 text-white rounded-lg"
-        >
-          Logout
-        </button>
-      </div>
       {/* Sidebar */}
       <aside
         className={`${
@@ -171,14 +207,17 @@ export default function DashboardLayout() {
           </button>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:block text-sm text-gray-600">
-              <span className="font-medium">14 days</span> left in trial
-            </div>
+            {userRole !== "admin" && (
+              <div className="hidden sm:block text-sm text-gray-600">
+                <span className="font-medium">{daysRemaining} days</span> left
+                in trial
+              </div>
+            )}
             <Link
               to="/pricing"
               className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-semibold hover:bg-accent/90 transition"
             >
-              Upgrade
+              {userRole === "admin" ? "Pricing" : "Upgrade"}
             </Link>
           </div>
         </header>

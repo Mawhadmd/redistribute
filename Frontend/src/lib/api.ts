@@ -116,7 +116,7 @@ export async function getCurrentUser() {
 }
 
 export async function verifyToken() {
-  const response = await fetch(`${API_BASE_URL}/api/auth/verify`, {
+  const response = await fetch(`${API_BASE_URL}/api/auth/user`, {
     method: "GET",
     headers: getAuthHeaders(),
   });
