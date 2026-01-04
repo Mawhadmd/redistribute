@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router";
 import AdminNav from "./AdminNav.tsx";
-import { verifyToken, getToken } from "../../lib/api.ts";
+import { verifyAdminToken, getToken } from "../../lib/api.ts";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -28,8 +28,8 @@ export default function AdminLayout() {
           return;
         }
 
-        // Verify token with backend
-        const user = await verifyToken();
+        // Verify admin token with backend
+        const user = await verifyAdminToken();
 
         // Check if user has admin role
         if (user.role === "admin") {

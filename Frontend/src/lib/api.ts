@@ -124,6 +124,15 @@ export async function verifyToken() {
   return handleResponse(response);
 }
 
+export async function verifyAdminToken() {
+  const response = await fetch(`${API_BASE_URL}/api/admin/verify`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  return handleResponse(response);
+}
+
 export async function adminSignIn(masterPassword: string) {
   const response = await fetch(`${API_BASE_URL}/api/admin/verify-password`, {
     method: "POST",

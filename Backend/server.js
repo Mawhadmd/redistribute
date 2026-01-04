@@ -160,6 +160,26 @@ app.post("/api/admin/verify-password", (req, res) => {
   }
 });
 
+// Admin verification endpoint (verify JWT token for admin)
+app.get("/api/admin/verify", authenticateToken, (req, res) => {
+  // Check if the user from JWT has admin role
+  if (req.user && req.user.role === "admin") {
+    return res.status(200).json({
+      success: true,
+      data: {
+        id: req.user.id,
+        email: req.user.email,
+        role: req.user.role,
+      },
+    });
+  } else {
+    return res.status(403).json({
+      success: false,
+      message: "Not authorized as admin",
+    });
+  }
+});
+
 // Optional: Generate a simple admin token
 function generateAdminToken() {
   return Buffer.from(
@@ -279,38 +299,63 @@ app.post("/api/auth/signin", async (req, res) => {
     }
 
     if (data.user) {
-      const { data: profileData, error: profileError } = await supabase
+      // Try to find user by ID first, then by email
+      let { data: profileData, error: profileError } = await supabase
         .from("users")
-        .select("role")
+        .select("*")
         .eq("id", data.user.id)
         .maybeSingle();
 
       if (profileError) {
-        return res.status(400).json({
-          success: false,
-          message: profileError.message,
-        });
+        console.error("Error fetching user by ID:", profileError);
       }
 
-      // If no profile exists, create one
+      // If no profile exists by ID, check by email
       if (!profileData) {
-        const trialEndDate = new Date();
-        trialEndDate.setDate(trialEndDate.getDate() + 14);
+        const { data: userByEmail } = await supabase
+          .from("users")
+          .select("*")
+          .eq("email", data.user.email)
+          .maybeSingle();
+     
+        if (userByEmail) {
+          // Found by email - update the ID to match Supabase Auth
+          const { error: updateError } = await supabase
+            .from("users")
+            .update({ id: data.user.id })
+            .eq("email", data.user.email);
 
-        const { error: insertError } = await supabase.from("users").insert([
-          {
-            id: data.user.id,
-            email: data.user.email,
-            display_name: data.user.email.split("@")[0],
-            role: "user",
-            created_at: new Date().toISOString(),
-            trial_end_date: trialEndDate.toISOString(),
-            subscription_status: "trial",
-          },
-        ]);
+          if (updateError) {
+            console.error("Error updating user ID:", updateError);
+          }
+          profileData = { ...userByEmail, id: data.user.id };
+        } else {
+          // Create new user profile
+          const trialEndDate = new Date();
+          trialEndDate.setDate(trialEndDate.getDate() + 14);
 
-        if (insertError) {
-          console.error("Error creating user profile:", insertError);
+          const { data: newUser, error: insertError } = await supabase
+            .from("users")
+            .insert([
+              {
+                id: data.user.id,
+                email: data.user.email,
+                display_name: data.user.email.split("@")[0],
+                role: "user",
+                created_at: new Date().toISOString(),
+                trial_end_date: trialEndDate.toISOString(),
+                subscription_status: "trial",
+              },
+            ])
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error("Error creating user profile:", insertError);
+            // Continue anyway with default role
+          } else {
+            profileData = newUser;
+          }
         }
       }
 
@@ -376,8 +421,47 @@ app.get(
         });
       }
 
-      // If no user record exists, create one
+      // If no user record exists, try to fetch by email first
       if (!userData) {
+        // Check if user exists with this email
+        const { data: userByEmail, error: emailError } = await supabase
+          .from("users")
+          .select("*")
+          .eq("email", req.user.email)
+          .maybeSingle();
+
+        if (emailError) {
+          return res.status(500).json({
+            success: false,
+            message: "Error fetching user by email: " + emailError.message,
+          });
+        }
+
+        // If user exists with email, return that user's data
+        if (userByEmail) {
+          const daysRemaining = userByEmail.trial_end_date
+            ? Math.max(
+                0,
+                Math.ceil(
+                  (new Date(userByEmail.trial_end_date) - new Date()) /
+                    (1000 * 60 * 60 * 24)
+                )
+              )
+            : 0;
+
+          return res.status(200).json({
+            success: true,
+            data: {
+              ...req.user,
+              displayName: userByEmail.display_name,
+              trialEndDate: userByEmail.trial_end_date,
+              subscriptionStatus: userByEmail.subscription_status,
+              daysRemaining,
+            },
+          });
+        }
+
+        // If user doesn't exist at all, create new profile
         const trialEndDate = new Date();
         trialEndDate.setDate(trialEndDate.getDate() + 14);
 

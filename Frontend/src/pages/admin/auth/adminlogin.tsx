@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Lock, LogIn, AlertCircle } from "lucide-react";
-import { adminSignIn, verifyToken, getToken } from "../../../lib/api.ts";
+import { adminSignIn, verifyAdminToken, getToken } from "../../../lib/api.ts";
 
 export default function AdminLogin() {
   const [masterPassword, setMasterPassword] = useState("");
@@ -16,7 +16,7 @@ export default function AdminLogin() {
       const token = getToken();
       if (token) {
         try {
-          const user = await verifyToken();
+          const user = await verifyAdminToken();
           if (user.role === "admin") {
             console.log("Already authenticated as admin, redirecting");
             navigate("/admin");
