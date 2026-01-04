@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router";
 import AdminNav from "./AdminNav.tsx";
+import { verifyToken, getToken } from "../../lib/api.ts";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -16,31 +17,30 @@ export default function AdminLayout() {
       return;
     }
 
-    const checkAuth = () => {
+    const checkAuth = async () => {
       try {
-        // Check localStorage for admin session
-        const adminSession = localStorage.getItem("adminSession");
-        console.log("Admin session check:", adminSession);
+        const token = getToken();
 
-        if (!adminSession) {
-          console.log("No admin session found, redirecting to login");
+        if (!token) {
+          console.log("No token found, redirecting to admin login");
           navigate("/admin/login");
           setLoading(false);
           return;
         }
 
-        const session = JSON.parse(adminSession);
-        if (session.authenticated === true) {
+        // Verify token with backend
+        const user = await verifyToken();
+
+        // Check if user has admin role
+        if (user.role === "admin") {
           console.log("Admin authenticated successfully");
           setIsAuthorized(true);
         } else {
-          console.log("Invalid admin session, redirecting to login");
-          localStorage.removeItem("adminSession");
+          console.log("User is not admin, redirecting to admin login");
           navigate("/admin/login");
         }
       } catch (error) {
-        console.error("Auth check failed:", error);
-        localStorage.removeItem("adminSession");
+        console.error("Admin auth check failed:", error);
         navigate("/admin/login");
       } finally {
         setLoading(false);

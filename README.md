@@ -327,14 +327,14 @@ react-project/
 
 ### Manual Testing Checklist
 
-- [ ] User registration works and returns JWT
-- [ ] User login works and stores token
-- [ ] Protected routes redirect when not authenticated
-- [ ] Token verification works on page refresh
-- [ ] Admin login works separately
-- [ ] Cart persists across sessions
-- [ ] Admin can CRUD products
-- [ ] Logout clears token and redirects
+- [yes] User registration works and returns JWT
+- [yes] User login works and stores token
+- [yes] Protected routes redirect when not authenticated
+- [yes] Token verification works on page refresh
+- [yes] Admin login works separately
+- [yes] Cart persists across sessions
+- [yes] Admin can CRUD products
+- [yes] Logout clears token and redirects
 
 ### API Testing (Postman/Thunder Client)
 
@@ -398,18 +398,15 @@ Use the API endpoints listed above with appropriate JWT tokens in headers.
 
 ## 🤝 Contributing
 
-1. Create a feature branch
-2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
+We don't recieve contriubtion at this moment
 
 ## 📄 License
 
-[Your License Here]
+Creative commons
 
 ## 👨‍💻 Author
 
-[Your Name/Team]
+Mohammed Awad
 
 ## 🙏 Acknowledgments
 

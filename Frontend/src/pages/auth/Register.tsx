@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Mail, Lock, User, CheckCircle2, AlertCircle } from "lucide-react";
-import { userSignUp } from "../../lib/api.ts";
+import { userSignUp, verifyToken, getToken } from "../../lib/api.ts";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -13,6 +13,24 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const navigate = useNavigate();
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = getToken();
+      if (token) {
+        try {
+          await verifyToken();
+          console.log("User already authenticated, redirecting to dashboard");
+          navigate("/dashboard");
+        } catch (error) {
+          // Token invalid, stay on register page
+          console.log("Invalid token, staying on register page");
+        }
+      }
+    };
+    checkAuth();
+  }, [navigate]);
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
 

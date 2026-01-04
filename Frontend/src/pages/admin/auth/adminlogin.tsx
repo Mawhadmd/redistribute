@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Lock, LogIn, AlertCircle } from "lucide-react";
-import { adminSignIn } from "../../../lib/api.ts";
+import { adminSignIn, verifyToken, getToken } from "../../../lib/api.ts";
 
 export default function AdminLogin() {
   const [masterPassword, setMasterPassword] = useState("");
@@ -10,21 +10,24 @@ export default function AdminLogin() {
   const [generalError, setGeneralError] = useState("");
   const navigate = useNavigate();
 
-  // Check if already authenticated
+  // Check if already authenticated with valid JWT token
   React.useEffect(() => {
-    const adminSession = localStorage.getItem("adminSession");
-    if (adminSession) {
-      try {
-        const session = JSON.parse(adminSession);
-        if (session.authenticated === true) {
-          console.log("Already authenticated, redirecting to admin");
-          navigate("/admin");
+    const checkAuth = async () => {
+      const token = getToken();
+      if (token) {
+        try {
+          const user = await verifyToken();
+          if (user.role === "admin") {
+            console.log("Already authenticated as admin, redirecting");
+            navigate("/admin");
+          }
+        } catch (error) {
+          // Token invalid, stay on login page
+          console.log("Invalid token, staying on login page");
         }
-      } catch (error) {
-        console.error("Error checking auth:", error);
-        localStorage.removeItem("adminSession");
       }
-    }
+    };
+    checkAuth();
   }, [navigate]);
 
   const validate = () => {
@@ -49,11 +52,9 @@ export default function AdminLogin() {
       const result = await adminSignIn(masterPassword);
       console.log("Admin login successful:", result);
 
-      // Store admin session
-      localStorage.setItem(
-        "adminSession",
-        JSON.stringify({ authenticated: true })
-      );
+      // Token is already stored by adminSignIn API function
+      // Store user info
+      localStorage.setItem("userInfo", JSON.stringify({ role: "admin" }));
 
       console.log("Navigating to /admin");
       navigate("/admin");

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Mail, Lock, LogIn, AlertCircle } from "lucide-react";
-import { userSignIn } from "../../lib/api.ts";
+import { userSignIn, verifyToken, getToken } from "../../lib/api.ts";
 import z from "zod";
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -11,6 +11,24 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const navigate = useNavigate();
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = getToken();
+      if (token) {
+        try {
+          await verifyToken();
+          console.log("User already authenticated, redirecting to dashboard");
+          navigate("/dashboard");
+        } catch (error) {
+          // Token invalid, stay on login page
+          console.log("Invalid token, staying on login page");
+        }
+      }
+    };
+    checkAuth();
+  }, [navigate]);
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
 
