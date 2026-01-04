@@ -25,7 +25,7 @@ if (!JWT_SECRET) {
 app.use(express.json());
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL], // production URL should be added here
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   })
 );
