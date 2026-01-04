@@ -25,7 +25,7 @@ if (!JWT_SECRET) {
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5173"],
+    origin: [process.env.FRONTEND_URL], // production URL should be added here
     credentials: true,
   })
 );
