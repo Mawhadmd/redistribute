@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Lock, LogIn, AlertCircle } from "lucide-react";
-import { adminSignIn } from "../../../lib/supabase.ts";
+import { adminSignIn } from "../../../lib/api.ts";
 
 export default function AdminLogin() {
   const [masterPassword, setMasterPassword] = useState("");

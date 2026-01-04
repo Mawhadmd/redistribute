@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Mail, Lock, User, CheckCircle2, AlertCircle } from "lucide-react";
-import { supabase, userSignUp } from "../../lib/supabase.ts";
+import { userSignUp } from "../../lib/api.ts";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -13,17 +13,6 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const navigate = useNavigate();
- useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        console.log("User already logged in, redirecting to dashboard");
-        navigate("/dashboard");
-      } else {
-        console.log("No active session found");
-      }
-    }); 
-
-  }, []);
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
 
@@ -49,10 +38,17 @@ export default function Register() {
     setGeneralError("");
 
     try {
-      await userSignUp(email, password, name);
+      const result = await userSignUp(email, password, name);
 
-      // Auto-login after signup
-      localStorage.setItem("currentUser", JSON.stringify({ email, name }));
+      // Store user info (token is already stored by API)
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({
+          user: result.user,
+          role: result.role,
+        })
+      );
+
       navigate("/dashboard");
     } catch (error: any) {
       setGeneralError(

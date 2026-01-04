@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Mail, Lock, LogIn, AlertCircle } from "lucide-react";
-import { supabase, userSignIn } from "../../lib/supabase.ts";
-
+import { userSignIn } from "../../lib/api.ts";
+import z from "zod";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,23 +11,12 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [generalError, setGeneralError] = useState("");
   const navigate = useNavigate();
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        console.log("User already logged in, redirecting to dashboard");
-        navigate("/dashboard");
-      } else {
-        console.log("No active session found");
-      }
-    }); 
-
-  }, []);
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
 
     if (!email.trim()) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid";
+    else if (!z.email().safeParse(email).success)
+      newErrors.email = "Email is invalid";
     if (!password) newErrors.password = "Password is required";
 
     setErrors(newErrors);
@@ -48,8 +37,15 @@ export default function Login() {
         localStorage.setItem("rememberEmail", email);
       }
 
-      // Store session info
-      localStorage.setItem("userSession", JSON.stringify(result));
+      // Store user info (token is already stored by API)
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({
+          user: result.user,
+          role: result.role,
+        })
+      );
+
       navigate("/dashboard");
     } catch (error: any) {
       setGeneralError(

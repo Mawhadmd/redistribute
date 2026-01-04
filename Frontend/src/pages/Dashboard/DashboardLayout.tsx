@@ -14,7 +14,7 @@ import {
   CreditCard,
   RefreshCcw,
 } from "lucide-react";
-import { getCurrentUser, signOut } from "../../lib/supabase.ts";
+import { signOut, verifyToken, getToken } from "../../lib/api.ts";
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,16 +27,21 @@ export default function DashboardLayout() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const user = await getCurrentUser();
-        if (!user) {
-          console.log("No user found, redirecting to login");
+        const token = getToken();
+        if (!token) {
+          console.log("No token found, redirecting to login");
           navigate("/login");
           return;
         }
+
+        // Verify token with backend
+        const user = await verifyToken();
         console.log("User authenticated:", user.email);
         setIsAuthorized(true);
       } catch (error) {
         console.error("Auth check failed:", error);
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("userInfo");
         navigate("/login");
       } finally {
         setLoading(false);
@@ -57,19 +62,18 @@ export default function DashboardLayout() {
     { icon: Settings, label: "Settings", path: "/dashboard/settings" },
   ];
 
-const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
-      // Sign out from Supabase
+      // Sign out from backend
       await signOut();
       console.log("User logged out successfully");
     } catch (error) {
       console.error("Logout error:", error);
     }
-    
-    // Clear local storage
-    localStorage.removeItem("currentUser");
-    localStorage.removeItem("userSession");
-    
+
+    // Clear all auth data (token is already removed by signOut)
+    localStorage.removeItem("userInfo");
+
     navigate("/login");
   };
 
@@ -87,7 +91,15 @@ const handleLogout = async () => {
 
   return (
     <div className="flex h-screen relative bg-gray-50">
-      <div className="absolute inset-0 bg-slate-500/50 z-[500] flex justify-center items-center text-4xl font-italic">Coming soon <button onClick={handleLogout} className="ml-4 px-4 py-2 bg-red-600 text-white rounded-lg">Logout</button></div>
+      <div className="absolute inset-0 bg-slate-500/50 z-[500] flex justify-center items-center text-4xl font-italic">
+        Coming soon{" "}
+        <button
+          onClick={handleLogout}
+          className="ml-4 px-4 py-2 bg-red-600 text-white rounded-lg"
+        >
+          Logout
+        </button>
+      </div>
       {/* Sidebar */}
       <aside
         className={`${
@@ -97,12 +109,12 @@ const handleLogout = async () => {
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200">
           <div className="flex gap-1 font-bold text-xl items-center justify-center">
-        <RefreshCcw className="text-accent size-6" />
-        <h2>
-          {" "}
-          <Link to="/">Redistribute.io</Link>
-        </h2>
-      </div>
+            <RefreshCcw className="text-accent size-6" />
+            <h2>
+              {" "}
+              <Link to="/">Redistribute.io</Link>
+            </h2>
+          </div>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden text-gray-500 hover:text-gray-700"

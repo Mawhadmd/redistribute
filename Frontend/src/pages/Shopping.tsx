@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { ShoppingCart, Filter } from "lucide-react";
+import { Filter } from "lucide-react";
 import ShoppingCards from "../components/ShoppingCards.tsx";
-import { getShopItems, ShopItem } from "../lib/supabase.ts";
+import { getShopItems, ShopItem } from "../lib/api.ts";
+import { useCart } from "../contexts/CartContext.tsx";
 
 export default function Shopping() {
-  const [cart, setCart] = useState<number[]>([]);
+  const { addToCart } = useCart();
   const [itemAdded, setItemAdded] = useState(false);
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
@@ -27,8 +28,8 @@ export default function Shopping() {
     }
   }
 
-  const addToCart = (productId: number) => {
-    setCart([...cart, productId]);
+  const handleAddToCart = (productId: number) => {
+    addToCart(productId);
     setItemAdded(true);
   };
 
@@ -102,21 +103,6 @@ export default function Shopping() {
           ))}
         </div>
 
-        {/* Shopping Cart Badge */}
-        <div className="fixed  bottom-6 right-6 z-50">
-          <button className="relative group p-3  bg-accent text-white rounded-full shadow-lg hover:bg-accent/90 transition">
-            <ShoppingCart className="w-6 h-6" />
-            {cart.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center pointer-events-none">
-                {cart.length}
-              </span>
-            )}
-            <div className="absolute p-2 group-hover:flex hidden -top-8 -left-16 w-fit bg-red-500 text-white text-xs font-bold rounded-full items-center justify-center pointer-events-none">
-              There is no checkout
-            </div>
-          </button>
-        </div>
-
         {/* Products Grid */}
         <div className="flex flex-wrap justify-center items-center gap-6">
           <ShoppingCards
@@ -131,7 +117,7 @@ export default function Shopping() {
                     .toLowerCase()
                     .includes(search.toLowerCase())
               )}
-            onAddToCart={addToCart}
+            onAddToCart={handleAddToCart}
           />
         </div>
       </div>

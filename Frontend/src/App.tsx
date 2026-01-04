@@ -26,11 +26,11 @@ import Billing from "./pages/Dashboard/Billing.tsx";
 import Settings from "./pages/Dashboard/Settings.tsx";
 import AdminHome from "./pages/admin/adminHome.tsx";
 import Shopping from "./pages/Shopping.tsx";
+import Cart from "./pages/Cart.tsx";
 import AdminLayout from "./pages/admin/AdminLayout.tsx";
 import AdminShopping from "./pages/admin/Shop/AdminShopping.tsx";
-import { createClient } from "@supabase/supabase-js";
-import { useEffect } from "react";
 import AdminLogin from "./pages/admin/auth/adminlogin.tsx";
+import { CartProvider } from "./contexts/CartContext.tsx";
 
 // Landing page layout wrapper with Navbar and Footer
 function LandingLayout({ children }: { children: React.ReactNode }) {
@@ -44,134 +44,130 @@ function LandingLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-export const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL || "",
-  process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY || ""
-);
+
+export const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 function App() {
-  // @ts-ignore: Vite env variables
-
-  useEffect(() => {
-    // Check for existing session on app load
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        console.log("User is logged in:", session.user);
-      } else {
-        console.log("No user session found");
-      }
-    });
-  },[]);
-
   return (
-    <Routes>
-      {/* Landing pages with Navbar and Footer */}
-      <Route
-        path="/"
-        element={
-          <LandingLayout>
-            <Home />
-          </LandingLayout>
-        }
-      />
-      <Route
-        path="/pricing"
-        element={
-          <LandingLayout>
-            <Pricing />
-          </LandingLayout>
-        }
-      />
-      <Route
-        path="/small-business"
-        element={
-          <LandingLayout>
-            <SmallBusiness />
-            <Shopping />
-          </LandingLayout>
-        }
-      />
-      <Route
-        path="/shopping"
-        element={
-          <LandingLayout>
-            <Shopping />
-          </LandingLayout>
-        }
-      />
-      <Route
-        path="/contact"
-        element={
-          <LandingLayout>
-            <Contact />
-          </LandingLayout>
-        }
-      />
-      <Route
-        path="/about"
-        element={
-          <LandingLayout>
-            <About />
-          </LandingLayout>
-        }
-      />
-      <Route
-        path="/content-creators"
-        element={
-          <LandingLayout>
-            <ContentCreators />
-            <Shopping />
-          </LandingLayout>
-        }
-      />
-      <Route
-        path="/contact/email"
-        element={
-          <LandingLayout>
-            <EmailContact />
-          </LandingLayout>
-        }
-      />
-      <Route
-        path="/terms-and-conditions"
-        element={
-          <LandingLayout>
-            <TermsAndConditions />
-          </LandingLayout>
-        }
-      />
-      <Route
-        path="/privacy-policy"
-        element={
-          <LandingLayout>
-            <PrivacyPolicy />
-          </LandingLayout>
-        }
-      />
+    <CartProvider>
+      <Routes>
+        {/* Landing pages with Navbar and Footer */}
+        <Route
+          path="/"
+          element={
+            <LandingLayout>
+              <Home />
+            </LandingLayout>
+          }
+        />
+        <Route
+          path="/pricing"
+          element={
+            <LandingLayout>
+              <Pricing />
+            </LandingLayout>
+          }
+        />
+        <Route
+          path="/small-business"
+          element={
+            <LandingLayout>
+              <SmallBusiness />
+              <Shopping />
+            </LandingLayout>
+          }
+        />
+        <Route
+          path="/shopping"
+          element={
+            <LandingLayout>
+              <Shopping />
+            </LandingLayout>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <LandingLayout>
+              <Cart />
+            </LandingLayout>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <LandingLayout>
+              <Contact />
+            </LandingLayout>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <LandingLayout>
+              <About />
+            </LandingLayout>
+          }
+        />
+        <Route
+          path="/content-creators"
+          element={
+            <LandingLayout>
+              <ContentCreators />
+              <Shopping />
+            </LandingLayout>
+          }
+        />
+        <Route
+          path="/contact/email"
+          element={
+            <LandingLayout>
+              <EmailContact />
+            </LandingLayout>
+          }
+        />
+        <Route
+          path="/terms-and-conditions"
+          element={
+            <LandingLayout>
+              <TermsAndConditions />
+            </LandingLayout>
+          }
+        />
+        <Route
+          path="/privacy-policy"
+          element={
+            <LandingLayout>
+              <PrivacyPolicy />
+            </LandingLayout>
+          }
+        />
 
-      {/* Auth pages without Navbar and Footer */}
-      <Route path="/register" element={<Register />} />
-      <Route path="/login" element={<Login />} />
+        {/* Auth pages without Navbar and Footer */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
 
-      {/* Dashboard with its own layout */}
-      <Route path="/dashboard" element={<DashboardLayout />}>
-        <Route index element={<Overview />} />
-        <Route path="workflows" element={<Workflows />} />
-        <Route path="content" element={<Content />} />
-        <Route path="accounts" element={<Accounts />} />
-        <Route path="schedule" element={<Schedule />} />
-        <Route path="analytics" element={<Analytics />} />
-        <Route path="billing" element={<Billing />} />
-        <Route path="settings" element={<Settings />} />
-      </Route>
-      {/* Admin */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminHome />} />
-        <Route path="shopping" element={<AdminShopping />} />
-      </Route>
+        {/* Dashboard with its own layout */}
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<Overview />} />
+          <Route path="workflows" element={<Workflows />} />
+          <Route path="content" element={<Content />} />
+          <Route path="accounts" element={<Accounts />} />
+          <Route path="schedule" element={<Schedule />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="billing" element={<Billing />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+        {/* Admin */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminHome />} />
+          <Route path="shopping" element={<AdminShopping />} />
+        </Route>
         <Route path="/admin/login" element={<AdminLogin />} />
-      {/* Error page without layout */}
-      <Route path="*" element={<ErrorPage />} />
-    </Routes>
+        {/* Error page without layout */}
+        <Route path="*" element={<ErrorPage />} />
+      </Routes>
+    </CartProvider>
   );
 }
 

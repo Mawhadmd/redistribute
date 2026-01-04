@@ -1,17 +1,19 @@
-import { List, ListCheck, RefreshCcw } from "lucide-react";
+import { List, ListCheck, RefreshCcw, ShoppingCart } from "lucide-react";
 import { use, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
 import BorderedButton from "./buttons/borderedbutton.tsx";
 import FilledButton from "./buttons/filledbutton.tsx";
 import PhoneNavBar from "./PhoneNavBar.tsx";
+import { useCart } from "../contexts/CartContext.tsx";
 
 export default function Navbar() {
   const location = useLocation();
   const [phoneNav, SetphoneNav] = useState(false);
+  const { getCartItemCount } = useCart();
+  const cartItemCount = getCartItemCount();
 
   useEffect(() => {
-    
-    SetphoneNav(false)
+    SetphoneNav(false);
   }, [location]);
   useEffect(() => {
     if (!phoneNav) return;
@@ -19,11 +21,9 @@ export default function Navbar() {
       if (window.innerWidth > 1024) {
         SetphoneNav(false);
       }
-      
     }; //closes the phone nav if size is increased beyond lg breakpoint
 
     const handleClick = (e: MouseEvent) => {
-      
       if (phoneNav) {
         const phoneNavElement = document.querySelector(
           "#phone-nav-bar"
@@ -32,25 +32,24 @@ export default function Navbar() {
         if (phoneNavElement && !phoneNavElement.contains(e.target as Node)) {
           SetphoneNav(false);
         }
-    }
-  }
+      }
+    };
     window.addEventListener("resize", handleResize);
     window.addEventListener("click", handleClick);
-   
+
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("click", handleClick);
     };
   }, [phoneNav]);
-  
+
   const currentpage = useLocation().pathname;
   const pages = [
-    {to:"/" , label:"Home"},
+    { to: "/", label: "Home" },
     { to: "/Pricing", label: "Pricing" },
     { to: "/shopping", label: "Shopping" },
-    { to: "/contact", label: "Contact" 
-    }
-    ,{to: "/about", label:"About"}
+    { to: "/contact", label: "Contact" },
+    { to: "/about", label: "About" },
   ];
   return (
     <div className="  flex justify-between items-center w-full p-8 mb-4 h-18 gap-2">
@@ -75,18 +74,42 @@ export default function Navbar() {
           </Link>
         ))}
       </nav>
-      <div className="gap-2 lg:flex  hidden">
+      <div className="gap-2 lg:flex  hidden items-center">
+        <Link
+          to="/cart"
+          className="relative p-2 hover:bg-accent/10 rounded-lg transition"
+        >
+          <ShoppingCart className="w-6 h-6 text-gray-700" />
+          {cartItemCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-accent text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              {cartItemCount}
+            </span>
+          )}
+        </Link>
         <BorderedButton style="xl:block hidden" text="Log in" to="/login" />
-        <FilledButton text="Start Free Trial" to='/register' />
+        <FilledButton text="Start Free Trial" to="/register" />
       </div>
-      <div className="flex gap-4 sm:hidden">
-        <Link to={'/register'} className="sm:hidden text-accent">Start free trial</Link>
-      <div
-        onClick={(e) => {  e.stopPropagation(); SetphoneNav(true)}}
-        className="cursor-pointer h-full lg:hidden"
-      >
-        <List></List>
-      </div>
+      <div className="flex gap-4 sm:hidden items-center">
+        <Link to="/cart" className="relative">
+          <ShoppingCart className="w-5 h-5 text-gray-700" />
+          {cartItemCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-accent text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+              {cartItemCount}
+            </span>
+          )}
+        </Link>
+        <Link to={"/register"} className="sm:hidden text-accent">
+          Start free trial
+        </Link>
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            SetphoneNav(true);
+          }}
+          className="cursor-pointer h-full lg:hidden"
+        >
+          <List></List>
+        </div>
       </div>
       <PhoneNavBar isopen={phoneNav} SetphoneNav={SetphoneNav}></PhoneNavBar>
     </div>
